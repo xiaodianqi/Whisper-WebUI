@@ -1,0 +1,21 @@
+# 虚拟环境
+.venv/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# IDE 和编辑器配置
+.idea/
+.vscode/
+
+# 构建和分发产物
+build/
+dist/
+*.egg-info
+
+# 用户上传的文件
+uploads/
+
+# PyInstaller 临时文件
+*.spec

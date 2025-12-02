@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "super-whisper-webui"
+version = "0.1.0"
+authors = [
+  { name="Your Name", email="you@example.com" },
+]
+description = "一个功能强大、高度可定制的语音转文字 Web 应用平台"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+# 核心依赖现在只包含 Web 框架和基础工具，不包含任何重型计算包
+dependencies = [
+    "Flask>=3.0.0",
+    "Werkzeug>=3.0.0",
+    "uvicorn",
+    "a2wsgi",
+    "pydub>=0.25.0",
+    "waitress",
+]
+
+[project.optional-dependencies]
+# CPU 用户的完整安装包
+cpu = [
+    "torch",
+    "torchaudio",
+    "torchvision",
+    "stable-ts>=2.15.0",
+    "demucs>=4.0.0",
+    "numpy",
+    "scipy",
+    "librosa",
+    "audioread",
+    "soundfile",
+    "einops",
+    "openai-whisper",
+    "tqdm",
+    "tiktoken",
+]
+# GPU 用户需要安装的、除 PyTorch 之外的包
+gpu = [
+    "stable-ts>=2.15.0",
+    "demucs>=4.0.0",
+    "numpy",
+    "scipy",
+    "librosa",
+    "audioread",
+    "soundfile",
+    "einops",
+    "openai-whisper",
+    "tqdm",
+    "tiktoken",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/你的用户名/你的仓库名"
+"Bug Tracker" = "https://github.com/你的用户名/你的仓库名/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["webui*"]
+exclude = ["tests*"]

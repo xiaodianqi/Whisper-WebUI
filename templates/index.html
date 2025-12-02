@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音转文字工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 { margin-bottom: 20px; }
+        #upload-form { display: flex; flex-direction: column; gap: 20px; }
+        #file-input { display: none; }
+        #file-label {
+            padding: 12px 20px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #file-label:hover { background-color: #d2e3fc; }
+        #file-name { margin-top: 10px; font-style: italic; color: #555; }
+        #upload-button {
+            padding: 12px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        #upload-button.disabled { opacity: 0.5; pointer-events: none; }
+        #upload-button:hover.enabled { background-color: #1558b8; }
+        
+        #status-area { margin-top: 20px; }
+        .status-message { font-weight: bold; }
+        .download-links a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 15px;
+            background-color: #34a853;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .download-links a:hover { background-color: #2c8f45; }
+        
+        .settings-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        .settings-container h2 { text-align: center; margin-bottom: 20px; font-size: 1.2em; color: #555; }
+        .setting-group { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+        .setting-group label { font-weight: bold; flex-shrink: 0; }
+        .setting-group select, .setting-group .radio-group, .setting-group .slider-group { flex-basis: 65%; }
+        .radio-group label { font-weight: normal; margin-right: 10px; }
+        .info-label { display: flex; align-items: center; gap: 10px; }
+        .info-label span { font-weight: normal; font-style: italic; color: #d93025; }
+        .slider-group { display: flex; align-items: center; gap: 10px; }
+        .slider-group input[type="range"] { flex-grow: 1; }
+        .disabled { opacity: 0.5; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>语音转文字工具</h1>
+        <form id="upload-form">
+            <label for="file-input" id="file-label">选择音频文件</label>
+            <input type="file" id="file-input" name="audioFile" accept=".wav, .mp3, .m4a, .flac">
+            <div id="file-name">未选择文件</div>
+
+            <div class="settings-container">
+                <h2>高级设置</h2>
+                <div class="setting-group">
+                    <label for="language-select">音频语言:</label>
+                    <select id="language-select" name="language">
+                        <option value="">自动检测</option>
+                        <option value="Chinese">中文 (Chinese)</option>
+                        <option value="English">英语 (English)</option>
+                        <option value="Japanese">日语 (Japanese)</option>
+                        <option value="Korean">韩语 (Korean)</option>
+                        <option value="French">法语 (French)</option>
+                        <option value="German">德语 (German)</option>
+                        <option value="Spanish">西班牙语 (Spanish)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="model-select">识别模型:</label>
+                    <select id="model-select" name="model">
+                        <option value="tiny">Tiny (最快)</option>
+                        <option value="base">Base (较快)</option>
+                        <option value="small">Small (推荐)</option>
+                        <option value="medium" selected>Medium (效果好)</option>
+                        <option value="large">Large (最准, 极慢)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>VAD 引擎:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="vad-whisper" name="vad" value="false" checked>
+                        <label for="vad-whisper">Whisper 原生</label>
+                        <input type="radio" id="vad-silero" name="vad" value="ture" >
+                        <label for="vad-silero">Silero-VAD</label>
+                    </div>
+                </div>
+                <div class="setting-group disabled" id="nst-group">
+                    <label for="nst-slider">原生VAD灵敏度:</label>
+                    <div class="slider-group">
+                        <input type="range" id="nst-slider" name="no_speech_threshold" min="0" max="1" step="0.05" value="0.7">
+                        <span id="nst-value">0.70</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="demucs-checkbox" class="info-label">强力降噪: <span>(速度慢)</span></label>
+                    <input type="checkbox" id="demucs-checkbox" name="demucs" value="true">
+                </div>
+                <div class="setting-group">
+                    <label for="gpu-checkbox" class="info-label">GPU 加速: <span>(需NVIDIA显卡)</span></label>
+                    <input type="checkbox" id="gpu-checkbox" name="gpu" value="true">
+                </div>
+            </div>
+
+            <button type="submit" id="upload-button">上传并开始处理</button>
+        </form>
+        <div id="status-area"></div>
+    </div>
+
+    <script>
+        // --- DOM 元素获取 ---
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        const uploadButton = document.getElementById('upload-button');
+        const statusArea = document.getElementById('status-area');
+        
+        const languageSelect = document.getElementById('language-select');
+        const modelSelect = document.getElementById('model-select');
+        const vadRadios = document.querySelectorAll('input[name="vad"]');
+        const demucsCheckbox = document.getElementById('demucs-checkbox');
+        const gpuCheckbox = document.getElementById('gpu-checkbox');
+        const nstGroup = document.getElementById('nst-group');
+        const nstSlider = document.getElementById('nst-slider');
+        const nstValue = document.getElementById('nst-value');
+
+        let pollInterval;
+
+        // --- UI 更新函数 ---
+        function setStatus(message, color = '#333') {
+            statusArea.innerHTML = `<p class="status-message" style="color: ${color};">${message}</p>`;
+        }
+
+        function displayResults(taskId) {
+            statusArea.innerHTML = `
+                <p class="status-message" style="color: green;">任务处理完成！</p>
+                <div class="download-links">
+                    <a href="/tasks/${taskId}/result/srt" download="result.srt">下载 .srt 文件</a>
+                    <a href="/tasks/${taskId}/result/txt" download="result.txt">下载 .txt 文件</a>
+                </div>
+            `;
+        }
+        
+        function setFormDisabled(disabled) {
+            const elements = [fileInput, modelSelect, demucsCheckbox, gpuCheckbox, nstSlider, languageSelect, ...vadRadios];
+            elements.forEach(el => el.disabled = disabled);
+            uploadButton.disabled = disabled;
+            
+            if(disabled) {
+                uploadButton.classList.add('disabled');
+                uploadButton.textContent = '处理中...';
+            } else {
+                uploadButton.classList.remove('disabled');
+                uploadButton.textContent = '上传并开始处理';
+            }
+        }
+
+        // --- 核心逻辑 ---
+        function pollTaskStatus(taskId) {
+            setStatus('任务已提交，正在后台处理中...');
+            
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/tasks/${taskId}/status`);
+                    const data = await response.json();
+
+                    if (data.state === 'SUCCESS') {
+                        clearInterval(pollInterval);
+                        setFormDisabled(false);
+                        displayResults(taskId);
+                    } else if (data.state === 'FAILURE') {
+                        clearInterval(pollInterval);
+                        setFormDisabled(false);
+                        setStatus(`任务失败: ${data.error || '未知错误'}`, 'red');
+                    } else if (data.state === 'RUNNING') {
+                        setStatus('任务正在运行，请耐心等待...');
+                    }
+                } catch (error) {
+                    clearInterval(pollInterval);
+                    setFormDisabled(false);
+                    setStatus('轮询状态失败，请检查网络和服务器状态。', 'red');
+                }
+            }, 3000);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (fileInput.files.length === 0) {
+                setStatus('请先选择一个文件！', 'red');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('audioFile', fileInput.files[0]);
+            formData.append('model', modelSelect.value);
+            formData.append('language', languageSelect.value);
+            formData.append('demucs', demucsCheckbox.checked);
+            formData.append('gpu', gpuCheckbox.checked);
+            formData.append('no_speech_threshold', nstSlider.value);
+            formData.append('vad', document.querySelector('input[name="vad"]:checked').value);
+
+            setFormDisabled(true);
+            setStatus('正在上传文件...', '#1a73e8');
+
+            try {
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (response.ok && result.success && result.task_id) {
+                    pollTaskStatus(result.task_id);
+                } else {
+                    setFormDisabled(false);
+                    setStatus(`错误: ${result.error || '提交任务失败'}`, 'red');
+                }
+            } catch (error){
+                setFormDisabled(false);
+                setStatus('发生网络错误，请检查服务器是否正在运行。', 'red');
+            }
+        });
+
+        // --- 辅助UI逻辑 ---
+        function toggleNstSlider() {
+            nstGroup.classList.toggle('disabled', !document.getElementById('vad-whisper').checked);
+        }
+        vadRadios.forEach(radio => radio.addEventListener('change', toggleNstSlider));
+        nstSlider.addEventListener('input', () => {
+            nstValue.textContent = parseFloat(nstSlider.value).toFixed(2);
+        });
+        fileInput.addEventListener('change', () => {
+            const hasFile = fileInput.files.length > 0;
+            uploadButton.classList.toggle('enabled', hasFile);
+            fileNameDisplay.textContent = hasFile ? fileInput.files[0].name : '未选择文件';
+        });
+        
+        // 初始化
+        toggleNstSlider();
+        uploadButton.classList.remove('enabled');
+    </script>
+</body>
+</html>
