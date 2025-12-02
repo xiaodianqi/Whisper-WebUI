@@ -7,6 +7,7 @@ Super-Whisper-WebUI 是一个基于 `stable-ts` (Whisper 的增强版) 构建的
 
 ## ✨ 核心功能
 
+- **一键启动**: 运行脚本后自动在浏览器中打开应用界面，无需手动输入地址。
 - **可视化 Web 界面**: 通过浏览器即可轻松上传音频文件，告别命令行。
 - **高度可定制**: 自由选择和组合不同的 AI 模型与参数，以适应各种需求。
     - **多语言支持**: 支持中文、英语、日语等语言的识别，或选择自动检测。
@@ -61,7 +62,7 @@ cd Super-Whisper-WebUI
 
 ### 4. 创建虚拟环境并安装依赖
 
-首先，使用 `uv` 创建并激活虚拟环境：
+首先，使用 `uv` 创建虚拟环境：
 ```sh
 # 这会在当前目录下创建一个名为 .venv 的虚拟环境
 uv venv
@@ -84,15 +85,19 @@ uv pip install -e ".[cpu]"
 
 #### **路径 B：GPU 用户**
 
-如果您拥有 NVIDIA GPU 并希望获得最佳性能：
+如果您拥有 NVIDIA GPU 并希望获得最佳性能，请遵循以下 **两步** 安装：
 
+**第一步：安装 PyTorch GPU 版本**
+
+这是最关键的一步。请访问 [PyTorch 官网](https://pytorch.org/get-started/locally/)，根据您的操作系统和 `nvidia-smi` 命令显示的 CUDA 版本，生成并运行正确的 `torch` 安装命令。
+
+例如，对于 CUDA 12.1，命令如下（**请务必使用官网生成的命令！**）：
 
 ```sh
+# 这是一个示例命令，请勿直接复制！
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-uv run python -c "import torch; print(torch.cuda.is_available())" 
 ```
-如果最后返回True则可以使用
-如果返回false请检查CUDA版本以及对应的PyTorch官网版本
+安装后，运行 `uv run python -c "import torch; print(torch.cuda.is_available())"` 来验证。如果输出 `True`，则说明 GPU 环境配置成功，可以继续下一步。
 
 **第二步：安装项目其余的 GPU 依赖**
 
@@ -105,25 +110,21 @@ uv pip install -e ".[gpu]"
 
 ---
 
-**安装后验证 (GPU 用户)**
-
-安装完成后，你可以通过运行 `uv run python -c "import torch; print(torch.cuda.is_available())"` 来验证 PyTorch 是否能正确找到你的 GPU。如果输出 `True`，则说明 GPU 环境配置成功。
-
 ### 5. 启动应用
 
-`uvicorn` 已作为核心依赖被安装。您只需运行以下命令即可启动应用：
+依赖安装完成后，只需运行我们提供的启动脚本：
 
 ```sh
-uv run uvicorn webui.app:app --host 0.0.0.0 --port 5000
+uv run python run.py
 ```
 
-服务器启动后，你会在命令行看到提示。
+服务器启动后，脚本会自动在您的默认浏览器中打开 `http://127.0.0.1:5000`。
 
 ---
 
 ## 📖 使用方法
 
-1.  在浏览器中打开 `http://127.0.0.1:5000`。
+1.  等待应用在浏览器中自动打开。
 2.  点击“选择音频文件”按钮，上传一个支持的音频文件。
 3.  根据你的需求，在“高级设置”中调整模型、语言、VAD 引擎等参数。
 4.  点击“上传并开始处理”按钮。
