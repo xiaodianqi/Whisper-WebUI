@@ -19,3 +19,5 @@ uploads/
 
 # PyInstaller 临时文件
 *.spec
+
+ffmpeg_bin/

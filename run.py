@@ -16,6 +16,14 @@ else:
     base_path = os.path.dirname(__file__)
     sys.path.append(os.path.join(base_path, 'src'))
 
+# --- 新增部分：将内置的 FFmpeg 添加到 PATH 作为备用 ---
+# 构造 ffmpeg_bin 目录的绝对路径
+ffmpeg_bin_path = os.path.join(base_path, 'ffmpeg_bin')
+# 将其添加到 PATH 环境变量的末尾。
+# 这样系统会优先使用已安装的 ffmpeg，仅在找不到时才使用我们内置的版本。
+os.environ["PATH"] = os.environ.get("PATH", "") + os.pathsep + ffmpeg_bin_path
+
+
 def open_browser():
     """
     在默认浏览器中打开指定的 URL。
