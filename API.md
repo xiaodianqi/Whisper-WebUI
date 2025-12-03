@@ -1,4 +1,4 @@
-## Super Whisper WebUI - API 接口说明文档
+## Whisper WebUI - API 接口说明文档
 
 本文档旨在为希望通过编程方式与 Super Whisper WebUI 后端服务进行交互的开发者提供指导。
 
