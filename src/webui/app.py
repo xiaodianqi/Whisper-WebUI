@@ -31,7 +31,7 @@ tasks = {}
 
 UPLOAD_FOLDER = project_root / 'uploads'
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a', 'flac'}
-ALLOWED_MODELS = {'tiny', 'base', 'small', 'medium', 'large'}
+ALLOWED_MODELS = {'tiny', 'base', 'small', 'medium', 'large-v1', 'large-v2', 'large-v3'}
 
 flask_app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -131,6 +131,9 @@ def get_task_result(task_id, file_type):
     elif file_type == 'srt':
         content = result_data.get('srt_content', '')
         filename = "result.srt"
+    elif file_type == 'vtt':
+        content = result_data.get('vtt_content', '')
+        filename = "result.vtt"
     else:
         return jsonify({'error': '无效的文件类型'}), 400
 

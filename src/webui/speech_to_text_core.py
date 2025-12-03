@@ -13,6 +13,18 @@ def format_srt_time(seconds):
     seconds, milliseconds = divmod(milliseconds, 1_000)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
+def srt_to_vtt(srt_content):
+    """
+    将标准的 SRT 格式内容转换为 VTT 格式内容。
+    """
+    if not srt_content:
+        return ""
+    # VTT 文件以 "WEBVTT" 开头，并通常后跟两个换行符。
+    # SRT 的时间戳格式是 00:00:21,490 --> 00:00:22,430
+    # VTT 的时间戳格式是 00:00:21.490 --> 00:00:22.430
+    # 我们只需要做一个简单的替换即可。
+    return "WEBVTT\n\n" + srt_content.replace(',', '.')
+
 def process_audio_file(
     audio_file_path,
     model_name="medium",
@@ -20,7 +32,7 @@ def process_audio_file(
     use_vad=True,
     use_demucs=False,
     no_speech_threshold=0.6,
-    use_gpu=False # 新增 use_gpu 参数
+    use_gpu=False
 ):
     """
     一个参数化的、可定制的核心识别函数，现已支持GPU加速选项。
@@ -82,6 +94,7 @@ def process_audio_file(
 
     # 5. 生成 SRT 和 TXT 内容
     txt_content = result.text
+    
     srt_content_lines = []
     for i, segment in enumerate(result.segments):
         start_time_srt = format_srt_time(segment.start)
@@ -96,10 +109,14 @@ def process_audio_file(
     
     srt_content = "\n".join(srt_content_lines)
 
+    # 6. 从 SRT 内容生成 VTT 内容
+    vtt_content = srt_to_vtt(srt_content)
+
     print(f"核心模块处理完成: {os.path.basename(audio_file_path)}")
     
-    # 6. 返回结果字典
+    # 7. 返回包含所有格式的结果字典
     return {
         'txt_content': txt_content,
-        'srt_content': srt_content
+        'srt_content': srt_content,
+        'vtt_content': vtt_content
     }

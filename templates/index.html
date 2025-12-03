@@ -113,7 +113,7 @@
                         <option value="base">Base (较快)</option>
                         <option value="small">Small (推荐)</option>
                         <option value="medium" selected>Medium (效果好)</option>
-                        <option value="large">Large (最准, 极慢)</option>
+                        <option value="large">Large (最准, 慢)</option>
                     </select>
                 </div>
                 <div class="setting-group">
@@ -176,6 +176,7 @@
                 <p class="status-message" style="color: green;">任务处理完成！</p>
                 <div class="download-links">
                     <a href="/tasks/${taskId}/result/srt" download="result.srt">下载 .srt 文件</a>
+                    <a href="/tasks/${taskId}/result/vtt" download="result.vtt">下载 .vtt 文件</a>
                     <a href="/tasks/${taskId}/result/txt" download="result.txt">下载 .txt 文件</a>
                 </div>
             `;
